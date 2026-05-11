@@ -41,7 +41,35 @@ module.exports = async function afterPack(context) {
         : packager.appInfo.productFilename;
   const electronBinaryPath = path.join(appOutDir, productFilename + (ext === '.app' ? '' : ''));
 
-  console.log(`[afterPack] Hardening fuses on ${electronBinaryPath}`);
+  // EnableEmbeddedAsarIntegrityValidation requires an integrity-hash blob
+  // (`ELECTRON_ASAR_INTEGRITY`) to be embedded in the binary at pack time.
+  //
+  //   - macOS: electron-builder computes and writes the blob unconditionally
+  //     (it's part of the .app bundle's Info.plist + binary resources), and
+  //     the ad-hoc signature `resetAdHocDarwinSignature: true` below repairs
+  //     the codesign after we flip the fuse bits.
+  //
+  //   - Windows: the blob is written into the PE resource section by
+  //     electron-builder's signing pipeline. If the build has no code-signing
+  //     certificate configured (`build.win.certificateFile`, env CSC_LINK,
+  //     etc.), the signing step is skipped and **the integrity blob is never
+  //     embedded**. At runtime, Electron sees the fuse ON, looks for the
+  //     blob, doesn't find one, and silently exits before any JS executes —
+  //     producing the "blank window that never appears in Task Manager"
+  //     symptom Windows users hit on this project (May 2026).
+  //
+  //   - Linux: same story; no integrity blob written by builder.
+  //
+  // So we only enable this fuse where we know the build pipeline can
+  // honor it. Re-enable for Windows once a code-signing cert is wired up
+  // through electron-builder and the signed binary is verified to contain
+  // the ELECTRON_ASAR_INTEGRITY blob (search the .exe with `strings -a`).
+  const canEmbedAsarIntegrity = electronPlatformName === 'darwin';
+
+  console.log(
+    `[afterPack] Hardening fuses on ${electronBinaryPath} ` +
+      `(asar-integrity=${canEmbedAsarIntegrity ? 'on' : 'off (no signing on this platform)'})`,
+  );
 
   await flipFuses(electronBinaryPath, {
     version: FuseVersion.V1,
@@ -50,7 +78,7 @@ module.exports = async function afterPack(context) {
     [FuseV1Options.EnableCookieEncryption]: true,
     [FuseV1Options.EnableNodeOptionsEnvironmentVariable]: false,
     [FuseV1Options.EnableNodeCliInspectArguments]: false,
-    [FuseV1Options.EnableEmbeddedAsarIntegrityValidation]: true,
+    [FuseV1Options.EnableEmbeddedAsarIntegrityValidation]: canEmbedAsarIntegrity,
     [FuseV1Options.OnlyLoadAppFromAsar]: true,
     [FuseV1Options.LoadBrowserProcessSpecificV8Snapshot]: false,
     // Must be `true` because the renderer is loaded via `mainWindow.loadFile()`

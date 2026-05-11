@@ -188,6 +188,55 @@ Code signing remains gated on the user-supplied repo secrets — see README
 - **WebGL force-graph topology** — current SVG layout is good enough
   for ≤ 30 hosts; WebGL only matters at scale (REFACTOR-011).
 
+## Phase 6.1 — Windows launch fixes ✅
+
+Landed 2026-05-11 (Cowork-mode session, verified on Windows 11 + Node 25.4.0):
+
+The Windows installer produced in Phase 6 was packaging-correct but
+unrunnable. Three root causes, each fixed independently:
+
+- [x] **WIN-001 — asar integrity fuse vs. unsigned Windows builds.**
+  `EnableEmbeddedAsarIntegrityValidation: true` in `build/after-pack.cjs`
+  required an `ELECTRON_ASAR_INTEGRITY` blob in the PE resource section
+  that electron-builder only writes during a code-signing pass. With no
+  Windows signing cert configured, the blob is absent; Electron 30+ reads
+  the fuse, demands the blob, doesn't find one, and silently exits before
+  V8 starts — hence the "blank window that never appears in Task Manager"
+  symptom. Fixed by gating the fuse to `electronPlatformName === 'darwin'`.
+  Re-enable for Windows once a code-signing cert is wired through
+  electron-builder and the signed `.exe` is verified to contain the blob
+  (`strings -a VizCloud.exe | grep ELECTRON_ASAR_INTEGRITY`).
+- [x] **BLD-002 — `npmRebuild: false` in `build` config.** CLAUDE.md
+  already documents the workflow as "npm ci then `@electron/rebuild`";
+  the duplicate rebuild attempt electron-builder makes by default chokes
+  on optional native deps (e.g. `cpu-features`) on Windows dev boxes
+  without Visual Studio Build Tools. `cpu-features` is wrapped in a
+  `try/catch` inside `ssh2/lib/protocol/constants.js`; absence falls
+  back to JS implementations of AES, with no functional loss.
+- [x] **WIN-003 — `HashRouter` instead of `BrowserRouter`.** Under
+  `file://` origin, `window.location.pathname` is the absolute path to
+  the asar-packed `index.html`, not `/`, so no `<Route path="/...">`
+  matches on initial load and every `useNavigate("/hosts")` pushes a
+  URL Electron's `will-navigate` handler then blocks. `HashRouter`
+  routes off `location.hash`, which is origin-agnostic and works under
+  both `file://` (production) and `http://localhost:3000` (dev).
+
+Verification artefacts:
+- `%APPDATA%\vizcloud\startup.log` shows the early-crash logger now
+  successfully reaches `[info] boot start; platform=win32 arch=x64
+  electron=32.3.3` on launch.
+- A CDP-driven probe walks all 9 sidebar routes (`#/`, `#/hosts`,
+  `#/vms`, `#/clusters`, `#/migration`, `#/topology`, `#/diagnostics`,
+  `#/storage`, `#/settings`) and confirms each page heading renders.
+- `npm run typecheck` + `npm run lint` clean (0 errors, 9 pre-existing
+  warnings in files this change did not touch).
+- 51/61 unit tests pass. The 10 failures are `database.service.test.ts`
+  hitting an ABI mismatch: `better-sqlite3` was built against Electron
+  32's bundled Node (ABI 128) so the packaged app works, but `npm run
+  test` runs in standalone Node 25.4 (ABI 141). Resolving needs either
+  Node 20 LTS as the local Node, or VS Build Tools to compile a
+  separate test-time binary — independent of this Windows-launch work.
+
 ## Phase 7 — Innovation backlog (deferred)
 
 These are intentional non-goals for the alpha:

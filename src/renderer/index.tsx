@@ -2,7 +2,15 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { Toaster } from 'react-hot-toast';
 import { Provider } from 'react-redux';
-import { BrowserRouter } from 'react-router-dom';
+// HashRouter (not BrowserRouter): the packaged app is loaded over a `file://`
+// URL, so `window.location.pathname` is the long absolute path to index.html,
+// not `/`. BrowserRouter would fail to match any route on initial load (and
+// `useNavigate("/hosts")` would push to a bogus file:// URL, which Electron's
+// will-navigate handler then blocks). HashRouter keeps the route in the URL
+// hash, which is origin-agnostic and works identically under file:// and
+// http(s)://. Dev mode (vite-served http://localhost) still works because
+// hash routing is protocol-neutral.
+import { HashRouter } from 'react-router-dom';
 
 import App from './App';
 import { attachEventBridge } from './lib/event-bridge';
@@ -22,7 +30,7 @@ attachEventBridge(store.dispatch);
 ReactDOM.createRoot(rootEl).render(
   <React.StrictMode>
     <Provider store={store}>
-      <BrowserRouter>
+      <HashRouter>
         <App />
         <Toaster
           position="top-right"
@@ -47,7 +55,7 @@ ReactDOM.createRoot(rootEl).render(
             },
           }}
         />
-      </BrowserRouter>
+      </HashRouter>
     </Provider>
   </React.StrictMode>,
 );
