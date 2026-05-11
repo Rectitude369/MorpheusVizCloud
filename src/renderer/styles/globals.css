@@ -1,0 +1,86 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/**
+ * Design tokens — exposed as RGB triplets so Tailwind utility classes can
+ * compose them with alpha modifiers (e.g. bg-success/10). See tailwind.config.js.
+ *
+ * Updating a token here propagates to every component without rebuilding;
+ * runtime theme switching is implemented by swapping these variables.
+ */
+:root {
+  /* Surfaces */
+  --bg-background-rgb: 10 10 15;          /* #0a0a0f */
+  --bg-page-rgb:        15 15 22;          /* #0f0f16 */
+  --bg-sidebar-rgb:     17 17 26;          /* #11111a */
+  --bg-sidebar-hover-rgb: 26 26 37;        /* #1a1a25 */
+  --bg-header-rgb:      15 15 22;          /* #0f0f16 */
+  --bg-search-rgb:      22 22 34;          /* #161622 */
+
+  /* Borders */
+  --border-default-rgb: 42 42 58;          /* #2a2a3a */
+  --border-light-rgb:   58 58 74;          /* #3a3a4a */
+
+  /* Primary brand */
+  --color-primary-rgb:        99 102 241;  /* #6366f1 */
+  --color-primary-light-rgb:  129 140 248; /* #818cf8 */
+  --color-primary-dark-rgb:   79 70 229;   /* #4f46e5 */
+
+  /* Semantic colors */
+  --color-success-rgb:        16 185 129;  /* #10b981 */
+  --color-success-light-rgb:  52 211 153;  /* #34d399 */
+  --color-warning-rgb:        245 158 11;  /* #f59e0b */
+  --color-warning-light-rgb:  251 191 36;  /* #fbbf24 */
+  --color-error-rgb:          239 68 68;   /* #ef4444 */
+  --color-error-light-rgb:    248 113 113; /* #f87171 */
+  --color-info-rgb:            59 130 246; /* #3b82f6 */
+  --color-info-light-rgb:      96 165 250; /* #60a5fa */
+
+  /* Text */
+  --color-foreground-rgb: 243 244 246;     /* #f3f4f6 */
+  --color-muted-rgb:      156 163 175;     /* #9ca3af */
+  --color-muted-dark-rgb: 107 114 128;     /* #6b7280 */
+}
+
+@layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+  html, body, #root {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: theme('fontFamily.sans');
+  }
+
+  /* Default focus ring is preserved for keyboard users only. */
+  :focus-visible {
+    @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-background;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: rgb(var(--bg-page-rgb));
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgb(var(--border-default-rgb));
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgb(var(--color-muted-rgb));
+  }
+
+  ::selection {
+    background: rgb(var(--color-primary-rgb));
+    color: #fff;
+  }
+}

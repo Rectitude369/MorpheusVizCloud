@@ -1,0 +1,89 @@
+# ============================================================
+# MorpheusVizCloud — Production .gitignore
+# ============================================================
+
+# ─── Dependencies ────────────────────────────────────────────
+node_modules/
+.pnp
+.pnp.js
+.yarn/install-state.gz
+
+# ─── Build Outputs ───────────────────────────────────────────
+dist/
+release/
+out/
+*.tsbuildinfo
+
+# electron-builder static resources (icons, entitlements,
+# afterPack hook) live in build/ — track those, ignore
+# any intermediate compilation artifacts.
+build/dist/
+build/out/
+
+# ─── Testing & Coverage ─────────────────────────────────────
+coverage/
+test-results/
+playwright-report/
+blob-report/
+*.coverage.*
+.nyc_output/
+
+# ─── Logs ────────────────────────────────────────────────────
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ─── Electron / Native Modules ──────────────────────────────
+*.pem
+*.key
+prebuilds/
+
+# ─── Databases (better-sqlite3) ─────────────────────────────
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+
+# ─── OS Generated ───────────────────────────────────────────
+.DS_Store
+**/.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+._*
+
+# ─── IDE / Editor ───────────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+*.sublime-workspace
+*.sublime-project
+
+# ─── Environment & Secrets ──────────────────────────────────
+.env
+.env.*
+!.env.example
+*.local
+
+# ─── Temporary Files ────────────────────────────────────────
+*.tmp
+*.temp
+tmp/
+temp/
+.cache/
+.temp/
+
+# ─── AI Agent Context ───────────────────────────────────────
+.claude/
+
+# ─── Misc ────────────────────────────────────────────────────
+*.tgz
+*.gz
+!build/**
