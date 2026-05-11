@@ -21,7 +21,7 @@
 
 ## 🌟 Overview
 
-MorpheusVizCloud is a **production-grade Electron desktop application** purpose-built for managing **Morpheus HVM** (KVM/QEMU/libvirt + Pacemaker/Corosync) infrastructure. End-to-end validated against a 3-host cluster with live VM migration, Pacemaker quorum monitoring, and HPE Support log bundle collection.
+MorpheusVizCloud is a **production-grade Electron desktop application** purpose-built for managing **Morpheus HVM** (KVM/QEMU/libvirt + Pacemaker/Corosync) infrastructure. Includes cluster views & operations with live VM migration, Pacemaker quorum monitoring, and HPE Support log bundle collection.
 
 > 🔒 **Privacy-first** — all operations run over SSH directly from your machine. No cloud intermediary. Your credentials stay in your OS keychain.
 
